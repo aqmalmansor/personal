@@ -6,14 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "drizzle-kit push:pg",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@mantine/core": "^7.9.0",
     "@mantine/hooks": "^7.9.0",
+    "@next/env": "^14.2.3",
+    "drizzle-orm": "^0.30.10",
     "next": "14.1.4",
+    "postgres": "^3.4.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^3.23.6"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -21,6 +28,7 @@
     "@types/react-dom": "^18",
     "@typescript-eslint/eslint-plugin": "5.32.0",
     "autoprefixer": "^10.0.1",
+    "drizzle-kit": "^0.20.17",
     "eslint": "^8",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-next": "14.1.4",
@@ -28,6 +36,7 @@
     "eslint-import-resolver-typescript": "^3.6.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-simple-import-sort": "^12.1.0",
+    "pg": "^8.11.5",
     "postcss": "^8.4.38",
     "postcss-preset-mantine": "^1.15.0",
     "postcss-simple-vars": "^7.0.1",
