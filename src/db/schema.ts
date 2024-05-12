@@ -1,20 +1,66 @@
 import { sql } from 'drizzle-orm';
-import { integer, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgEnum, pgTable, primaryKey, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import type { AdapterAccount } from 'next-auth/adapters';
+import { z } from 'zod';
 
-export const users = pgTable(
-    'users',
+export const userRolePgEnum = pgEnum('role', ['guest', 'admin']);
+export const userEnumSchema = z.enum(userRolePgEnum.enumValues);
+export type UserRoleType = z.infer<typeof userEnumSchema>;
+
+export const users = pgTable('user', {
+    id: text('id')
+        .primaryKey()
+        .$defaultFn(() => crypto.randomUUID()),
+    name: text('name'),
+    email: text('email').notNull(),
+    emailVerified: timestamp('emailVerified', { mode: 'date' }),
+    image: text('image'),
+    role: userRolePgEnum('role').default('guest'),
+});
+
+export const accounts = pgTable(
+    'account',
     {
-        id: serial('id').primaryKey(),
-        name: varchar('name', { length: 256 }).notNull(),
-        createdAt: timestamp('created_at')
-            .default(sql`CURRENT_TIMESTAMP`)
-            .notNull(),
-        updatedAt: timestamp('updatedAt'),
+        userId: text('userId')
+            .notNull()
+            .references(() => users.id, { onDelete: 'cascade' }),
+        type: text('type').$type<AdapterAccount['type']>().notNull(),
+        provider: text('provider').notNull(),
+        providerAccountId: text('providerAccountId').notNull(),
+        refresh_token: text('refresh_token'),
+        access_token: text('access_token'),
+        expires_at: integer('expires_at'),
+        token_type: text('token_type'),
+        scope: text('scope'),
+        id_token: text('id_token'),
+        session_state: text('session_state'),
     },
+    (account) => ({
+        compoundKey: primaryKey({
+            columns: [account.provider, account.providerAccountId],
+        }),
+    }),
 );
 
-export type UserQueryType = typeof users.$inferSelect;
-export type UserMutationType = typeof users.$inferInsert;
+export const sessions = pgTable('session', {
+    sessionToken: text('sessionToken').primaryKey(),
+    userId: text('userId')
+        .notNull()
+        .references(() => users.id, { onDelete: 'cascade' }),
+    expires: timestamp('expires', { mode: 'date' }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+    'verificationToken',
+    {
+        identifier: text('identifier').notNull(),
+        token: text('token').notNull(),
+        expires: timestamp('expires', { mode: 'date' }).notNull(),
+    },
+    (vt) => ({
+        compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
+    }),
+);
 
 export const posts = pgTable(
     'posts',
@@ -22,7 +68,7 @@ export const posts = pgTable(
         id: serial('id').primaryKey(),
         title: varchar('title', { length: 1000 }).notNull(),
         content: varchar('content', { length: 1000 }),
-        user_id: integer('user_id').references(() => users.id),
+        user_id: text('user_id').references(() => users.id),
         createdAt: timestamp('created_at')
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),

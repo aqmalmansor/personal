@@ -5,8 +5,8 @@ import config from '@/config';
 export default {
     schema: './src/db/schema.ts',
     out: './drizzle',
-    driver: 'pg',
+    dialect: 'postgresql',
     dbCredentials: {
-        connectionString: config.DB_CONNECTION_STR,
+        url: config.DB_CONNECTION_STR,
     },
 } satisfies Config;
