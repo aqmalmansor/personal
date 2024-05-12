@@ -1,27 +1,13 @@
 'use server';
 
 import { desc } from 'drizzle-orm';
-import { revalidatePath } from 'next/cache';
 
 import db from '@/db';
 import { users } from '@/db/schema';
 
-export const createUser = async (form: FormData) => {
-    const name = form.get('name') as string;
+import { signIn, signOut } from './auth';
 
-    if (!name) throw new Error('Name is required');
-
-    const result = await db.insert(users).values({
-        name,
-    });
-
-    if (!result) throw new Error('User not created');
-
-    revalidatePath('/');
-    return result;
-};
-
-export const getUserDetails = async (id: number) => {
+export const getUserDetails = async (id: string) => {
     const result = await db.query.users.findFirst({
         where: (model, { eq }) => eq(model.id, id),
     });
@@ -36,10 +22,16 @@ export const getUserList = async () => {
         .select()
         .from(users)
         .orderBy(desc(users.id))
-        .limit(10)
-        .offset(10);
+        .limit(10);
 
     if (!result) throw new Error('Users not found');
 
     return result;
 };
+
+export const login = async (form: FormData) => {
+    const provider = form.get('provider') as string;
+    await signIn(provider);
+};
+
+export const logout = async () => signOut();
